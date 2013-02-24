@@ -65,6 +65,8 @@ Drawing.SimpleGraph = function(options) {
   var stats;
   var info_text = {};
   var graph = new Graph({limit: options.limit});
+
+  var textures = {};
   
   var geometries = [];
   
@@ -123,6 +125,7 @@ Drawing.SimpleGraph = function(options) {
           }
         },
         clicked: function(obj) {
+            console.log("click",obj);
         }
       });
     }
@@ -155,13 +158,13 @@ Drawing.SimpleGraph = function(options) {
    */
   function createGraph() {
 
-    var node = new Node(0);
-    node.data.title = "This is node " + node.id;
-    graph.addNode(node);
-    drawNode(node);
+    var node0 = new Node(0);
+    node0.data.title = "This is node " + node0.id;
+    graph.addNode(node0);
+    drawNode(node0);
 
     var nodes = [];
-    nodes.push(node);
+    nodes.push(node0);
 
     var steps = 1;
     while(nodes.length != 0 && steps < that.nodes_count) {
@@ -183,9 +186,9 @@ Drawing.SimpleGraph = function(options) {
       steps++;
     } 
     
-    that.layout_options.width = that.layout_options.width || 2000;
-    that.layout_options.height = that.layout_options.height || 2000;
-    that.layout_options.iterations = that.layout_options.iterations || 100000;
+    that.layout_options.width = that.layout_options.width || 1000;
+    that.layout_options.height = that.layout_options.height || 1000;
+    that.layout_options.iterations = that.layout_options.iterations || 1000000;
     that.layout_options.layout = that.layout_options.layout || that.layout;
     graph.layout = new Layout.ForceDirected(graph, that.layout_options);
     graph.layout.init();
@@ -193,23 +196,20 @@ Drawing.SimpleGraph = function(options) {
     info_text.edges = "Edges " + graph.edges.length;
   }
 
+  function addLabelObject(node) {
+      if (!that.show_labels) return node;
+      var label = node.data.title || node.id;
+      node.data.label_object = new THREE.Label(label, node.data.draw_object);
+      scene.addObject(node.data.label_object);
+      return node;
+  }
 
   /**
    *  Create a node object and add it to the scene.
    */
   function drawNode(node) {
-    var draw_object = new THREE.Mesh( geometry, [ new THREE.MeshBasicMaterial( {  color: Math.random() * 0xffffff, opacity: 0.5 } ) ] );
+    var draw_object = createImageObject(); // new THREE.Mesh( geometry, [ new THREE.MeshBasicMaterial( {  color: Math.random() * 0xffffff, opacity: 0.5 } ) ] );
     
-    if(that.show_labels) {
-      if(node.data.title != undefined) {
-        var label_object = new THREE.Label(node.data.title);
-      } else {
-        var label_object = new THREE.Label(node.id);
-      }
-      node.data.label_object = label_object;
-      scene.addObject( node.data.label_object );
-    }
-
     var area = 5000;
     draw_object.position.x = Math.floor(Math.random() * (area + area + 1) - area);
     draw_object.position.y = Math.floor(Math.random() * (area + area + 1) - area);
@@ -222,6 +222,10 @@ Drawing.SimpleGraph = function(options) {
     node.data.draw_object = draw_object;
     node.position = draw_object.position;
     scene.addObject( node.data.draw_object );
+
+    addLabelObject(node,scene);
+    // addImageObject(node,scene)
+
   }
 
 
@@ -229,7 +233,7 @@ Drawing.SimpleGraph = function(options) {
    *  Create an edge object (line) and add it to the scene.
    */
   function drawEdge(source, target) {
-      material = new THREE.LineBasicMaterial( { color: 0xff0000, opacity: 1, linewidth: 0.5 } );
+      material = new THREE.LineBasicMaterial( { color: 0xffffff, opacity: 1, linewidth: 0.5 } );
       var tmp_geo = new THREE.Geometry();
     
       tmp_geo.vertices.push(new THREE.Vertex(source.data.draw_object.position));
@@ -253,12 +257,33 @@ Drawing.SimpleGraph = function(options) {
     }
   }
 
+  function loadTexture(name) {
+      if (!textures[name])
+          textures[name]=THREE.ImageUtils.loadTexture(name);
+      return textures[name];
+  }
+
+    function createImageObject() {
+        var texture = loadTexture('maxdemarzi.png');
+        var geometry = new THREE.PlaneGeometry(48, 48);
+        var material = new THREE.MeshBasicMaterial({map:texture});
+        var plane = new THREE.Mesh(geometry, material);
+        plane.receiveShadow = false;
+        return plane;
+    }
+
+    function addImageObject(node,scene) {
+        var plane = createImageObject();
+        node.data.label_object = plane;
+        scene.addObject(node.data.label_object);
+  }
 
   function render() {
     // Generate layout if not finished
     if(!graph.layout.finished) {
       info_text.calc = "<span style='color: red'>Calculating layout...</span>";
       graph.layout.generate();
+      if (Math.random()<0.8) return;
     } else {
       info_text.calc = "";
     }
@@ -271,27 +296,21 @@ Drawing.SimpleGraph = function(options) {
 
     // Show labels if set
     // It creates the labels when this options is set during visualization
-    if(that.show_labels) {
-      var length = graph.nodes.length;
+    var length = graph.nodes.length;
+
+      if(that.show_labels) {
       for(var i=0; i<length; i++) {
         var node = graph.nodes[i];
-        if(node.data.label_object != undefined) {
-          node.data.label_object.position.x = node.data.draw_object.position.x;
-          node.data.label_object.position.y = node.data.draw_object.position.y - 100;
-          node.data.label_object.position.z = node.data.draw_object.position.z;
-          node.data.label_object.lookAt(camera.position);
-        } else {
-          if(node.data.title != undefined) {
-            var label_object = new THREE.Label(node.data.title, node.data.draw_object);
-          } else {
-            var label_object = new THREE.Label(node.id, node.data.draw_object);
+          if (node.data.label_object == undefined) {
+              // addImageObject(node,scene);
+              addLabelObject(node,scene);
           }
-          node.data.label_object = label_object;
-          scene.addObject( node.data.label_object );
-        }
+          node.data.label_object.position.x = node.data.draw_object.position.x;
+          node.data.label_object.position.y = node.data.draw_object.position.y - 120;
+          node.data.label_object.position.z = node.data.draw_object.position.z - 1;
+          node.data.label_object.lookAt(camera.position);
       }
     } else {
-      var length = graph.nodes.length;
       for(var i=0; i<length; i++) {
         var node = graph.nodes[i];
         if(node.data.label_object != undefined) {

@@ -42,9 +42,9 @@ Layout.ForceDirected = function(graph, options) {
   var options = options || {};
   
   this.layout = options.layout || "2d";
-  this.attraction_multiplier = options.attraction || 5;
-  this.repulsion_multiplier = options.repulsion || 0.75;
-  this.max_iterations = options.iterations || 1000;
+  this.attraction_multiplier = options.attraction || 10;
+  this.repulsion_multiplier = options.repulsion || 1; // 0.75;
+  this.max_iterations = options.iterations || 1; // 1000;
   this.graph = graph;
   this.width = options.width || 200;
   this.height = options.height || 200;
@@ -52,7 +52,7 @@ Layout.ForceDirected = function(graph, options) {
 
   var callback_positionUpdated = options.positionUpdated;
   
-  var EPSILON = 0.000001;
+  var EPSILON = 0.0001;
   var attraction_constant;
   var repulsion_constant;
   var forceConstant;

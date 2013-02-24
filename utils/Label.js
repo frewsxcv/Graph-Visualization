@@ -23,7 +23,7 @@ THREE.Label = function(text, parameters) {
   
   function create() {
     var xc = labelCanvas.getContext("2d");
-    var fontsize = "40pt";
+    var fontsize = "20pt";
 
     // set font size to measure the text
     xc.font = fontsize + " Arial";
@@ -35,6 +35,8 @@ THREE.Label = function(text, parameters) {
     // when setting a new width
     xc.font = fontsize + " Arial";
     xc.textBaseline = 'top';
+    xc.fillStyle = "white"
+    xc.strokeStyle = "white"
     xc.fillText(text, 0, 0);
 
     var geometry = new THREE.CubeGeometry(len, 200);

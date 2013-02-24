@@ -19,12 +19,13 @@ THREEJS.Interaction = function(camera, element) {
   this.element = element || document;
 
   // Add mouse listeners for element
+    /*
   this.element.addEventListener('mousedown', onMouseDown, false);
   this.element.addEventListener('mousemove', onMouseMove, false );
   this.element.addEventListener('mouseup', onMouseUp, false );
   this.element.addEventListener('mousewheel', onMouseWheel, false);
   this.element.addEventListener('DOMMouseScroll', onMouseWheel, false);
-
+    */
   function onMouseDown( event ) {
     event.preventDefault();
     if(event.button == 2) {

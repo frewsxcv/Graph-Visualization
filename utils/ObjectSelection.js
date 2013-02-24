@@ -58,7 +58,7 @@ THREE.ObjectSelection = function(parameters) {
 
         this.INTERSECTED = intersects[ 0 ].object;
         this.INTERSECTED.currentHex = this.INTERSECTED.materials[ 0 ].color.getHex();
-        this.INTERSECTED.materials[ 0 ].color.setHex( 0xff0000 );
+        this.INTERSECTED.materials[ 0 ].color.setHex( 0xff0000 ); // red highlight
         if(typeof callbackSelected === 'function') {
           callbackSelected(this.INTERSECTED);
         }
