@@ -37,7 +37,7 @@
         /* Change these values to draw more nodes (numNodes) */
         switch(index) {
           case 0:
-            return new Drawing.SimpleGraph({layout: '2d', selection: true, numNodes: 50, showStats: true, showInfo: true, showLabels:true, graphLayout:{attraction: 10, repulsion: 0.5, iterations: 5000}});
+            return new Drawing.SimpleGraph({layout: '2d', render: "webgl" /*"canvas" control via abilities*/, selection: true, numNodes: 50, showStats: true, showInfo: true, showLabels:true, graphLayout:{attraction: 10, repulsion: 0.5, iterations: 5000}});
           case 1:
             return new Drawing.SimpleGraph({layout: '3d', selection: true, numNodes: 50, graphLayout:{attraction: 5, repulsion: 0.5}, showStats: true, showInfo: true});
           case 2:

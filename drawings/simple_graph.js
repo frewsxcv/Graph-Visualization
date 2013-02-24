@@ -51,6 +51,7 @@ var Drawing = Drawing || {};
 Drawing.SimpleGraph = function(options) {
   var options = options || {};
   
+  this.render = options.render || "canvas";
   this.layout = options.layout || "2d";
   this.layout_options = options.graphLayout || {};
   this.show_stats = options.showStats || false;
@@ -78,7 +79,7 @@ Drawing.SimpleGraph = function(options) {
 
   function init() {
     // Three.js initialization
-    renderer = new THREE.WebGLRenderer({antialias: true});
+    renderer = render=="canvas" ? new THREE.CanvasRenderer({antialias: true}) : new THREE.WebGLRenderer({antialias: true});
     renderer.setSize( window.innerWidth, window.innerHeight );
     
     camera = new THREE.TrackballCamera({
@@ -102,6 +103,8 @@ Drawing.SimpleGraph = function(options) {
       keys: [ 65, 83, 68 ]
     });
     camera.position.z = 5000;
+
+    THREE.Interaction(camera);
 
     scene = new THREE.Scene();
 
@@ -213,14 +216,14 @@ Drawing.SimpleGraph = function(options) {
     var area = 5000;
     draw_object.position.x = Math.floor(Math.random() * (area + area + 1) - area);
     draw_object.position.y = Math.floor(Math.random() * (area + area + 1) - area);
-    
+
     if(that.layout === "3d") {
       draw_object.position.z = Math.floor(Math.random() * (area + area + 1) - area);
     }
 
     draw_object.id = node.id;
     node.data.draw_object = draw_object;
-    node.position = draw_object.position;
+    node.position = draw_object.position; // todo is this the right initialization??
     scene.addObject( node.data.draw_object );
 
     addLabelObject(node,scene);
@@ -298,29 +301,26 @@ Drawing.SimpleGraph = function(options) {
     // It creates the labels when this options is set during visualization
     var length = graph.nodes.length;
 
-      if(that.show_labels) {
-      for(var i=0; i<length; i++) {
-        var node = graph.nodes[i];
-          if (node.data.label_object == undefined) {
-              // addImageObject(node,scene);
-              addLabelObject(node,scene);
+      var labels = that.show_labels;
+      for (var i = 0; i < length; i++) {
+          var node = graph.nodes[i];
+          if (labels) {
+              if (node.data.label_object == undefined) {
+                  addLabelObject(node, scene);
+              }
+              node.data.label_object.position.x = node.data.draw_object.position.x;
+              node.data.label_object.position.y = node.data.draw_object.position.y - 120;
+              node.data.label_object.position.z = node.data.draw_object.position.z - 1;
+              node.data.label_object.lookAt(camera.position);
+          } else {
+              if (node.data.label_object == undefined) continue;
+              scene.removeObject(node.data.label_object);
+              node.data.label_object = undefined;
           }
-          node.data.label_object.position.x = node.data.draw_object.position.x;
-          node.data.label_object.position.y = node.data.draw_object.position.y - 120;
-          node.data.label_object.position.z = node.data.draw_object.position.z - 1;
-          node.data.label_object.lookAt(camera.position);
+          node.data.draw_object.lookAt(camera.position);
       }
-    } else {
-      for(var i=0; i<length; i++) {
-        var node = graph.nodes[i];
-        if(node.data.label_object != undefined) {
-          scene.removeObject( node.data.label_object );
-          node.data.label_object = undefined;
-        }
-      }
-    }
 
-    // render selection
+      // render selection
     if(that.selection) {
       object_selection.render(scene, camera);
     }
